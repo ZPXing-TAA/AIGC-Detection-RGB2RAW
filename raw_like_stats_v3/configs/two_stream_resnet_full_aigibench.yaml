@@ -1,0 +1,54 @@
+project:
+  seed: 42
+  root: /data0/xzp/AIGC/raw_like_stats_v3
+  output_dir: /data0/xzp/AIGC/raw_like_stats_v3/outputs/full_aigibench_resnet50
+
+data:
+  dataset_name: AIGIBench
+  dataset_root: /data0/xzp/dataset/in-the-wild/AIGIBench
+  manifest_path: /data0/xzp/AIGC/raw_like_stats_v3/manifests/full_aigibench.csv
+  manifest_summary_path: /data0/xzp/AIGC/raw_like_stats_v3/manifests/full_aigibench_summary.json
+  raw_like_cache_root: /data0/xzp/AIGC/raw_like_stats_v3/raw_like_cache/full_aigibench_uint16_224
+  image_size: 224
+  raw_cache_size: 224
+  raw_cache_dtype: uint16
+  raw_cache_layout: chw
+  raw_cache_ext: .npy
+  rgb_mean: [0.485, 0.456, 0.406]
+  rgb_std: [0.229, 0.224, 0.225]
+  raw_mean: [0.5, 0.5, 0.5, 0.5]
+  raw_std: [0.5, 0.5, 0.5, 0.5]
+  num_workers: 8
+  image_extensions: [.jpg, .jpeg, .png, .webp]
+
+cycleisp:
+  repo_dir: /data0/xzp/AIGC/CycleISP
+  checkpoint_path: /data0/xzp/AIGC/CycleISP/pretrained_models/isp/pths/rgb2raw.pth
+  device: cuda:0
+  batch_size: 8
+  # CycleISP packed RAW-like output is half of the RGB spatial size.
+  # 448 -> [4,224,224].
+  input_size: 448
+
+model:
+  name: two_stream_resnet50
+  num_classes: 2
+  pretrained: true
+  dropout: 0.3
+
+train:
+  batch_size: 32
+  epochs: 20
+  optimizer: adamw
+  lr: 0.0001
+  encoder_lr: 0.00001
+  classifier_lr: 0.0001
+  weight_decay: 0.0001
+  loss: cross_entropy
+  scheduler: cosine
+  mixed_precision: true
+  checkpoint_metric: val_AUROC
+  patience: 5
+  freeze_backbone_epochs: 0
+  evaluate_test: false
+

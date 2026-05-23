@@ -1,0 +1,105 @@
+project:
+  name: "raw_like_stats_v0"
+  root: "/data1/xzp/AIGC/raw_like_stats_v0"
+  random_seed: 42
+
+data:
+  dataset_name: "bfree_online"
+  bfree_real_dir: "/data1/xzp/dataset/in-the-wild/BFree-Online/images/REAL"
+  bfree_fake_dir: "/data1/xzp/dataset/in-the-wild/BFree-Online/images/FAKE"
+  manifest_path: "data/manifests/bfree_balanced.csv"
+  balance_classes: true
+  max_per_class:
+  image_extensions: [".jpg", ".jpeg", ".png", ".webp"]
+
+cycleisp:
+  repo_dir: "/data1/xzp/AIGC/CycleISP"
+  checkpoint_path: "/data1/xzp/AIGC/CycleISP/pretrained_models/isp/pths/rgb2raw.pth"
+  device: "cuda:0"
+  batch_size: 4
+
+preprocess:
+  image_size: 512
+  center_crop: true
+  force_rgb: true
+  normalize_to_0_1: true
+
+raw_like_output:
+  photo_dir: "outputs/raw_like/photo"
+  gen_dir: "outputs/raw_like/gen"
+  save_npy: true
+  save_preview_png: true
+  preview_dir: "outputs/raw_like/previews"
+
+features:
+  output_csv: "outputs/features/raw_like_features.csv"
+  output_parquet: "outputs/features/raw_like_features.parquet"
+  schema_json: "outputs/features/feature_schema.json"
+  patch_size: 64
+  patch_stride: 64
+  min_patch_std: 0.005
+
+  noise:
+    enabled: true
+    num_intensity_bins: 16
+    local_window: 8
+
+  highpass:
+    enabled: true
+    filters: ["laplacian", "sobel_x", "sobel_y", "haar_h", "haar_v"]
+
+  channel:
+    enabled: true
+
+  frequency:
+    enabled: true
+    num_radial_bins: 16
+
+  cfa_like:
+    enabled: false
+
+analysis:
+  output_dir: "outputs/analysis"
+  standardize_features: true
+  random_seed: 42
+  gmm_components: 5
+  test_size: 0.3
+  representative_features:
+    noise: ["noise_slope_a", "noise_intercept_b", "noise_fit_r2", "noise_global_residual_var"]
+    highpass: ["hp_laplacian_ch0_absmean", "hp_laplacian_ch1_var", "hp_sobel_x_ch0_absmean"]
+    channel: ["channel_mean_0", "channel_std_0", "channel_corr_0_1", "channel_dark_var_0"]
+    frequency: ["freq_high_low_ratio", "freq_mid_low_ratio", "freq_spectral_slope"]
+
+learned:
+  enabled: false
+  output_dir: "outputs/learned"
+  checkpoint_path: "outputs/learned/checkpoints/best.pt"
+  embeddings_csv: "outputs/learned/learned_embeddings.csv"
+  embeddings_parquet: "outputs/learned/learned_embeddings.parquet"
+  schema_json: "outputs/learned/learned_embedding_schema.json"
+  device: "cuda:0"
+  random_seed: 42
+
+  model:
+    name: "raw_like_cnn"
+    in_channels: 4
+    base_channels: 32
+    embedding_dim: 64
+    dropout: 0.1
+
+  train:
+    epochs: 20
+    batch_size: 16
+    lr: 0.001
+    weight_decay: 0.0001
+    num_workers: 2
+    train_ratio: 0.7
+    val_ratio: 0.15
+    test_ratio: 0.15
+    patience: 8
+    augment_hflip: true
+
+learned_analysis:
+  output_dir: "outputs/learned_analysis"
+  random_seed: 42
+  gmm_components: 5

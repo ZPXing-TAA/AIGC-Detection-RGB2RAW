@@ -1,0 +1,87 @@
+project:
+  name: raw_like_stats_v1
+  seed: 42
+
+paths:
+  output_dir: /data1/xzp/AIGC/raw_like_stats_v1/outputs/aigibench_lite_v1
+  v0_manifest: /data1/xzp/AIGC/raw_like_stats_v0/data/manifests/aigibench_handcrafted_lite.csv
+  raw_like_cache:
+    photo_dir: /data1/xzp/AIGC/raw_like_stats_v0/outputs/aigibench_handcrafted_lite/raw_like/photo
+    gen_dir: /data1/xzp/AIGC/raw_like_stats_v0/outputs/aigibench_handcrafted_lite/raw_like/gen
+
+manifest:
+  id_col: image_id
+  split_col: split
+  label_col: label
+  source_col: source
+  subset_col: subset
+  generator_col: generator
+  generator_family_col: generator_family
+
+feature_extraction:
+  groups: [noise, srm, glcm, frequency]
+  failed_images_path: failed_images.csv
+  noise:
+    patch_size: 8
+    flat_patch_selection: true
+    flat_patch_score: gradient_absmean
+    flat_patch_percentile: 30
+    num_bins: 16
+    bin_statistic: median
+    include_channel_probes: true
+    include_bin_counts: true
+  srm:
+    kernel_set: normalized_hpf_3x3
+    quantize: true
+    q: 1.0
+    truncation: 3
+    residual_scale: 1.0
+    stats: [absmean, mean, var, skew, kurt, p10, p50, p90]
+  glcm:
+    levels: 32
+    distances: [1, 2]
+    angles_degrees: [0, 45, 90, 135]
+    symmetric: true
+    normed: true
+    channel_props: [contrast, energy, homogeneity, entropy, correlation]
+    cross_channel: true
+    cross_channel_pairs: [[0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3]]
+  frequency:
+    num_radial_bins: 16
+    low_radius: 0.15
+    mid_radius: 0.35
+    high_radius: 0.65
+    normalize_power: false
+    include_channel_probes: false
+
+mlp:
+  hidden_dims: [256, 128]
+  dropout: 0.25
+  batch_norm: true
+  batch_size: 256
+  epochs: 80
+  patience: 12
+  lr: 0.001
+  weight_decay: 0.0001
+  pos_weight: auto
+  early_stop_metric: val_auroc
+  threshold_metric: balanced_accuracy
+  num_workers: 0
+  group_ablation: true
+
+baselines:
+  enabled: true
+  random_state: 42
+  gmm:
+    n_components: 4
+    pca_components: 32
+    reg_covar: 0.00001
+
+analysis:
+  random_state: 42
+  plot_sample: 500
+  tsne_perplexity: 30
+  effect_size_top_k: 100
+  run_umap: true
+  run_tsne: true
+

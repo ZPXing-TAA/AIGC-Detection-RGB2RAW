@@ -1,0 +1,40 @@
+# === Data & Results ===
+*.npy
+*.npz
+*.parquet
+*.csv
+*.pt
+*.pth
+*.png
+*.jpg
+*.jpeg
+*.tif
+*.tiff
+
+# === Archive files ===
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+
+# === Python cache ===
+__pycache__/
+*.pyc
+*.pyo
+
+# === OS ===
+.DS_Store
+Thumbs.db
+
+# === IDE ===
+.vscode/
+.idea/
+
+# === Output directories ===
+outputs/
+raw_like_cache/
+manifests/
+raw_like_stats_v0_results/
+
+# === Claude ===
+.claude/

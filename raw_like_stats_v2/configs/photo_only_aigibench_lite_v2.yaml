@@ -1,0 +1,92 @@
+project:
+  name: raw_like_stats_v2
+  seed: 42
+
+paths:
+  output_dir: /data1/xzp/AIGC/raw_like_stats_v2/outputs/photo_only_aigibench_lite_v2
+  v0_manifest: /data1/xzp/AIGC/raw_like_stats_v0/data/manifests/aigibench_handcrafted_lite.csv
+  raw_like_cache:
+    photo_dir: /data1/xzp/AIGC/raw_like_stats_v0/outputs/aigibench_handcrafted_lite/raw_like/photo
+    gen_dir: /data1/xzp/AIGC/raw_like_stats_v0/outputs/aigibench_handcrafted_lite/raw_like/gen
+
+manifest:
+  id_col: image_id
+  split_col: split
+  label_col: label
+  source_col: source
+  subset_col: subset
+  generator_col: generator
+  generator_family_col: generator_family
+
+feature_extraction:
+  noise20:
+    patch_size: 8
+    flat_patch_selection: true
+    flat_patch_score: gradient_absmean
+    flat_patch_percentile: 30
+    num_bins: 16
+    bin_statistic: median
+  ai_spectrum:
+    bins: [64, 128, 300]
+    normalize_by_first_bin: true
+  srm_compact:
+    kernel_set: normalized_hpf_3x3
+    stats: [absmean, var, p90]
+    modes: [noq, q255]
+    truncation: 3
+
+feature_sets:
+  noise20:
+    prefixes: [noise20_]
+  ai64:
+    prefixes: [ai64_]
+  ai128:
+    prefixes: [ai128_]
+  ai300:
+    prefixes: [ai300_]
+  srm_noq:
+    prefixes: [srm_noq_]
+  srm_q255:
+    prefixes: [srm_q255_]
+  noise20_ai128:
+    prefixes: [noise20_, ai128_]
+  noise20_srm_noq:
+    prefixes: [noise20_, srm_noq_]
+  ai128_srm_noq:
+    prefixes: [ai128_, srm_noq_]
+  combined_compact:
+    prefixes: [noise20_, ai128_, srm_noq_]
+
+photo_only:
+  threshold_fprs: [0.01, 0.05, 0.10]
+  pca_dims: [null, 8, 16, 32, 64]
+  max_model_rows: null
+  model_grid:
+    diagonal_gaussian:
+      enabled: true
+    full_gaussian:
+      enabled: true
+      reg_lambdas: [0.00001, 0.0001, 0.001]
+    pca_gmm:
+      enabled: true
+      pca_dims: [8, 16, 32, 64]
+      n_components: [2, 4, 8, 16]
+      reg_covar: [0.00001, 0.0001, 0.001]
+    knn:
+      enabled: true
+      k: [5, 10, 25, 50]
+    isolation_forest:
+      enabled: true
+      n_estimators: [200, 500]
+      max_samples: auto
+      contamination: auto
+    one_class_svm:
+      enabled: true
+      pca_dims: [8, 16, 32]
+      nu: [0.01, 0.05, 0.10]
+      gamma: scale
+
+analysis:
+  plot_sample: 2000
+  make_plots: true
+
