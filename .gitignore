@@ -38,3 +38,9 @@ raw_like_stats_v0_results/
 
 # === Claude ===
 .claude/
+
+# === Download & migration (not for github) ===
+download/
+migration_scripts/
+download_scripts.sh
+post_processing.sh
